@@ -21,15 +21,21 @@ var routes = Routes{
 		Index,
 	},
 	Route{
-		"ToDoIndex",
+		"BookIndex",
 		"GET",
 		"/books",
 		BookIndex,
 	},
 	Route{
-		"ToDoShow",
+		"BookShow",
 		"GET",
 		"/books/{bookId}",
 		BookShow,
+	},
+	Route{
+		"BookPost",
+		"POST",
+		"/books",
+		BookPost,
 	},
 }
