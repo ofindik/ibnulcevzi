@@ -23,7 +23,10 @@ func Index(w http.ResponseWriter, r *http.Request) {
 func BookIndex(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json;charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(books); err != nil {
+	connect()
+	defer close()
+	book := read("Book1")
+	if err := json.NewEncoder(w).Encode(book); err != nil {
 		panic(err)
 	}
 }
@@ -51,11 +54,12 @@ func BookPost(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	books = append(books, book)
+	connect()
+	write(book)
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusCreated)
-	if err := json.NewEncoder(w).Encode(books); err != nil {
+	if err := json.NewEncoder(w).Encode(book); err != nil {
 		panic(err)
 	}
 }
