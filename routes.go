@@ -15,27 +15,33 @@ type Routes []Route
 
 var routes = Routes{
 	Route{
-		"Index",
+		"BookGetAll",
 		"GET",
-		"/",
-		Index,
+		"/ibnulcevzi/v1/books",
+		BookGetAll,
 	},
 	Route{
-		"BookIndex",
+		"BookGet",
 		"GET",
-		"/books",
-		BookIndex,
-	},
-	Route{
-		"BookShow",
-		"GET",
-		"/books/{bookId}",
-		BookShow,
+		"/ibnulcevzi/v1/books/{bookId}",
+		BookGet,
 	},
 	Route{
 		"BookPost",
 		"POST",
-		"/books",
+		"/ibnulcevzi/v1/books",
 		BookPost,
+	},
+	Route{
+		"BookPut",
+		"PUT",
+		"/ibnulcevzi/v1/books",
+		BookPut,
+	},
+	Route{
+		"BookDelete",
+		"DELETE",
+		"/ibnulcevzi/v1/books/{bookId}",
+		BookDelete,
 	},
 }

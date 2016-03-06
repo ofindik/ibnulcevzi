@@ -2,42 +2,49 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
 )
 
-var books Books = Books{
-	Book{Name: "Book1", Author: "Author1"},
-	Book{Name: "Book2", Author: "Author2"},
-	Book{Name: "Book3", Author: "Author3"},
-}
-
-func Index(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Welcome!")
-}
-
-func BookIndex(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json;charset=UTF-8")
-	w.WriteHeader(http.StatusOK)
+func BookGetAll(w http.ResponseWriter, r *http.Request) {
 	connect()
 	defer close()
-	book := read("Book1")
+	books := readall()
+
+	w.Header().Set("Content-Type", "application/json;charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(books); err != nil {
+		panic(err)
+	}
+}
+
+func retrieveBookId(r *http.Request) string {
+	vars := mux.Vars(r)
+	bookId := vars["bookId"]
+	log.Printf("BookGet bookId", bookId)
+
+	return bookId
+}
+
+func BookGet(w http.ResponseWriter, r *http.Request) {
+	bookId := retrieveBookId(r)
+
+	connect()
+	defer close()
+	book := read(bookId)
+
+	w.Header().Set("Content-Type", "application/json;charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(book); err != nil {
 		panic(err)
 	}
 }
 
-func BookShow(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	bookId := vars["bookId"]
-	fmt.Fprintf(w, "Todo show:", bookId)
-}
-
-func BookPost(w http.ResponseWriter, r *http.Request) {
+func readBookContent(w http.ResponseWriter, r *http.Request) Book {
 	var book Book
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
 	if err != nil {
@@ -54,7 +61,14 @@ func BookPost(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	return book
+}
+
+func BookPost(w http.ResponseWriter, r *http.Request) {
+	book := readBookContent(w, r)
+
 	connect()
+	defer close()
 	write(book)
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -62,4 +76,29 @@ func BookPost(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(book); err != nil {
 		panic(err)
 	}
+}
+
+func BookPut(w http.ResponseWriter, r *http.Request) {
+	book := readBookContent(w, r)
+
+	connect()
+	defer close()
+	update(book)
+
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusCreated)
+	if err := json.NewEncoder(w).Encode(book); err != nil {
+		panic(err)
+	}
+}
+
+func BookDelete(w http.ResponseWriter, r *http.Request) {
+	bookId := retrieveBookId(r)
+
+	connect()
+	defer close()
+	delete(bookId)
+
+	w.Header().Set("Content-Type", "application/json;charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
 }
