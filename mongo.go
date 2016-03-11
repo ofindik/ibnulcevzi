@@ -6,71 +6,75 @@ import (
 	"log"
 )
 
-var err error
-var session *mgo.Session
-var c *mgo.Collection
+type mongo struct{}
 
-func connect() {
-	log.Printf(
-		"Will connect to local mongodb",
-	)
-	session, err = mgo.Dial("mongodb://localhost:27017")
+func connect(url string) (s *mgo.Session, err error) {
+	s, err = mgo.Dial(url)
+	if err != nil {
+		return
+	}
+	log.Printf("Connected to: ", url)
+	s.SetMode(mgo.Monotonic, true)
+	return
+}
+
+func collection(session *mgo.Session, dbname, cname string) (c *mgo.Collection) {
+	c = session.DB(dbname).C(cname)
+	log.Printf("Session retireved")
+
+	return
+}
+
+func close(s *mgo.Session) {
+	s.Close()
+	log.Printf("Session closed")
+}
+
+func (m *mongo) Readall(url, dbName, cName string) (books Books) {
+	s, err := connect(url)
 	if err != nil {
 		panic(err)
 	}
-	log.Printf(
-		"Connected to local mongodb",
-	)
-	session.SetMode(mgo.Monotonic, true)
+	c := collection(s, dbName, cName)
+	defer close(s)
 
-	c = session.DB("ibnulcevzi").C("books")
-	log.Printf(
-		"Session retireved",
-	)
-}
-
-func close() {
-	log.Printf(
-		"Session will be closed",
-	)
-	session.Close()
-	log.Printf(
-		"Session closed",
-	)
-}
-
-func readall() Books {
-	log.Printf(
-		"Books will be read",
-	)
+	log.Printf("Books will be read")
 	result := Books{}
-	err := c.Find(bson.M{}).All(&result)
+	err = c.Find(bson.M{}).All(&result)
 	if err != nil {
 		log.Printf("No books found", err)
 	}
-	log.Printf(
-		"All books read",
-	)
+	log.Printf("All books read")
 	return result
 }
 
-func read(name string) Book {
-	log.Printf(
-		"Book will be read",
-	)
-	result := Book{}
-	err := c.Find(bson.M{"name": name}).One(&result)
+func (m *mongo) Read(url, dbName, cName, bookId string) Book {
+	s, err := connect(url)
 	if err != nil {
-		log.Printf("Book not found:", name, err)
+		panic(err)
 	}
-	log.Printf(
-		"Book read",
-	)
+	c := collection(s, dbName, cName)
+	defer close(s)
+
+	log.Printf("Book will be read")
+	result := Book{}
+	err = c.Find(bson.M{"name": bookId}).One(&result)
+	if err != nil {
+		log.Printf("Book not found:", bookId, err)
+	}
+	log.Printf("Book read")
 	return result
 }
 
-func write(b Book) {
-	oldBook := read(b.Name)
+func (m *mongo) Write(url, dbName, cName string, b Book) {
+	s, err := connect(url)
+	if err != nil {
+		panic(err)
+	}
+	c := collection(s, dbName, cName)
+	defer close(s)
+
+	oldBook := m.Read(url, dbName, cName, b.Name)
 	if "" != oldBook.Name {
 		log.Printf("Book already exist:", oldBook.Name)
 	} else {
@@ -81,8 +85,15 @@ func write(b Book) {
 	}
 }
 
-func update(b Book) {
-	oldBook := read(b.Name)
+func (m *mongo) Update(url, dbName, cName string, b Book) {
+	s, err := connect(url)
+	if err != nil {
+		panic(err)
+	}
+	c := collection(s, dbName, cName)
+	defer close(s)
+
+	oldBook := m.Read(url, dbName, cName, b.Name)
 	if "" == oldBook.Name {
 		log.Printf("Book does not exist:", b.Name)
 	} else {
@@ -93,15 +104,18 @@ func update(b Book) {
 	}
 }
 
-func delete(name string) {
-	log.Printf(
-		"Book will be deleted",
-	)
-	err := c.Remove(bson.M{"name": name})
+func (m *mongo) Delete(url, dbName, cName, bookId string) {
+	s, err := connect(url)
 	if err != nil {
-		log.Printf("Book not deleted:", name, err)
+		panic(err)
 	}
-	log.Printf(
-		"Book deleted",
-	)
+	c := collection(s, dbName, cName)
+	defer close(s)
+
+	log.Printf("Book will be deleted")
+	err = c.Remove(bson.M{"name": bookId})
+	if err != nil {
+		log.Printf("Book not deleted:", bookId, err)
+	}
+	log.Printf("Book deleted")
 }

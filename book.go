@@ -6,7 +6,7 @@ import (
 )
 
 type Book struct {
-	ID       bson.ObjectId `bson:"_id,omitempty"`
+	ID       bson.ObjectId `bson:"_id,omitempty" json:"id,omitempty"`
 	Name     string        `json:"name"`
 	Author   string        `json:"author"`
 	Status   string        `json:"status"`

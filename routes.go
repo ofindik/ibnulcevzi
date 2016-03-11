@@ -5,43 +5,45 @@ import (
 )
 
 type Route struct {
-	Name        string
-	Method      string
-	Pattern     string
-	HandlerFunc http.HandlerFunc
+	Name    string
+	Method  string
+	Pattern string
+	Handler http.Handler
 }
 
 type Routes []Route
+
+var db = new(mongo)
 
 var routes = Routes{
 	Route{
 		"BookGetAll",
 		"GET",
 		"/ibnulcevzi/v1/books",
-		BookGetAll,
+		BookGetAll(db),
 	},
 	Route{
 		"BookGet",
 		"GET",
 		"/ibnulcevzi/v1/books/{bookId}",
-		BookGet,
+		BookGet(db),
 	},
 	Route{
 		"BookPost",
 		"POST",
 		"/ibnulcevzi/v1/books",
-		BookPost,
+		BookPost(db),
 	},
 	Route{
 		"BookPut",
 		"PUT",
 		"/ibnulcevzi/v1/books",
-		BookPut,
+		BookPut(db),
 	},
 	Route{
 		"BookDelete",
 		"DELETE",
 		"/ibnulcevzi/v1/books/{bookId}",
-		BookDelete,
+		BookDelete(db),
 	},
 }

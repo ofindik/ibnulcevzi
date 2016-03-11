@@ -10,38 +10,45 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func BookGetAll(w http.ResponseWriter, r *http.Request) {
-	connect()
-	defer close()
-	books := readall()
+type AppDatabase interface {
+	Readall(url, dbName, cName string) (books Books)
+	Read(url, dbName, cName, bookId string) (book Book)
+	Write(url, dbName, cName string, book Book)
+	Update(url, dbName, cName string, book Book)
+	Delete(url, dbName, cName, bookId string)
+}
 
-	w.Header().Set("Content-Type", "application/json;charset=UTF-8")
-	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(books); err != nil {
-		panic(err)
-	}
+func BookGetAll(db AppDatabase) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		books := db.Readall("mongodb://localhost:27017", "ibnulcevzi", "books")
+		w.Header().Set("Content-Type", "application/json;charset=UTF-8")
+		w.WriteHeader(http.StatusOK)
+		if err := json.NewEncoder(w).Encode(books); err != nil {
+			log.Printf("Error:", err)
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+	})
 }
 
 func retrieveBookId(r *http.Request) string {
 	vars := mux.Vars(r)
 	bookId := vars["bookId"]
-	log.Printf("BookGet bookId", bookId)
-
+	log.Printf("retrieveBookId bookId", bookId)
 	return bookId
 }
 
-func BookGet(w http.ResponseWriter, r *http.Request) {
-	bookId := retrieveBookId(r)
+func BookGet(db AppDatabase) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		bookId := retrieveBookId(r)
+		book := db.Read("mongodb://localhost:27017", "ibnulcevzi", "books", bookId)
+		w.Header().Set("Content-Type", "application/json;charset=UTF-8")
+		w.WriteHeader(http.StatusOK)
+		if err := json.NewEncoder(w).Encode(book); err != nil {
+			log.Printf("Error:", err)
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 
-	connect()
-	defer close()
-	book := read(bookId)
-
-	w.Header().Set("Content-Type", "application/json;charset=UTF-8")
-	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(book); err != nil {
-		panic(err)
-	}
+	})
 }
 
 func readBookContent(w http.ResponseWriter, r *http.Request) Book {
@@ -57,48 +64,47 @@ func readBookContent(w http.ResponseWriter, r *http.Request) Book {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(422) // unprocessable entity
 		if err := json.NewEncoder(w).Encode(err); err != nil {
-			panic(err)
+			log.Printf("Error:", err)
+			w.WriteHeader(http.StatusInternalServerError)
 		}
 	}
 
 	return book
 }
 
-func BookPost(w http.ResponseWriter, r *http.Request) {
-	book := readBookContent(w, r)
+func BookPost(db AppDatabase) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		book := readBookContent(w, r)
+		db.Write("mongodb://localhost:27017", "ibnulcevzi", "books", book)
+		w.Header().Set("Content-Type", "application/json;charset=UTF-8")
+		w.WriteHeader(http.StatusCreated)
+		if err := json.NewEncoder(w).Encode(book); err != nil {
+			log.Printf("Error:", err)
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 
-	connect()
-	defer close()
-	write(book)
-
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusCreated)
-	if err := json.NewEncoder(w).Encode(book); err != nil {
-		panic(err)
-	}
+	})
 }
 
-func BookPut(w http.ResponseWriter, r *http.Request) {
-	book := readBookContent(w, r)
+func BookPut(db AppDatabase) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		book := readBookContent(w, r)
+		db.Update("mongodb://localhost:27017", "ibnulcevzi", "books", book)
+		w.Header().Set("Content-Type", "application/json;charset=UTF-8")
+		w.WriteHeader(http.StatusOK)
+		if err := json.NewEncoder(w).Encode(book); err != nil {
+			log.Printf("Error:", err)
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 
-	connect()
-	defer close()
-	update(book)
-
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusCreated)
-	if err := json.NewEncoder(w).Encode(book); err != nil {
-		panic(err)
-	}
+	})
 }
 
-func BookDelete(w http.ResponseWriter, r *http.Request) {
-	bookId := retrieveBookId(r)
-
-	connect()
-	defer close()
-	delete(bookId)
-
-	w.Header().Set("Content-Type", "application/json;charset=UTF-8")
-	w.WriteHeader(http.StatusOK)
+func BookDelete(db AppDatabase) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		bookId := retrieveBookId(r)
+		db.Delete("mongodb://localhost:27017", "ibnulcevzi", "books", bookId)
+		w.Header().Set("Content-Type", "application/json;charset=UTF-8")
+		w.WriteHeader(http.StatusOK)
+	})
 }
