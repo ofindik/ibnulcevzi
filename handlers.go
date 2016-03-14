@@ -33,7 +33,6 @@ func BookGetAll(db AppDatabase) http.Handler {
 func retrieveBookId(r *http.Request) string {
 	vars := mux.Vars(r)
 	bookId := vars["bookId"]
-	log.Printf("retrieveBookId bookId", bookId)
 	return bookId
 }
 

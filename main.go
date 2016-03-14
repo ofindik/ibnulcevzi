@@ -8,8 +8,8 @@ import (
 
 func main() {
 	fmt.Println("Ibnul Cevzi Library Manager")
-
-	router := NewRouter()
+	var db = new(mongo)
+	router := NewRouter(db)
 
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
