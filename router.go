@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 
-	"github.com/gorilla/mux"
+	"gopkg.in/gorilla/mux.v0"
 )
 
 func NewRouter(db AppDatabase) *mux.Router {

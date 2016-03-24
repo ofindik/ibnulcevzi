@@ -7,7 +7,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/gorilla/mux"
+	"gopkg.in/gorilla/mux.v0"
 )
 
 type AppDatabase interface {
