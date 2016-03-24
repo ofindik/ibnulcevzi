@@ -2,7 +2,7 @@ package main
 
 import (
 	"bytes"
-	"gopkg.in/gorilla/mux.v0"
+	"github.com/gorilla/mux"
 	"net/http"
 	"net/http/httptest"
 	"strings"
