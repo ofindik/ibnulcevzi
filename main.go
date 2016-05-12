@@ -5,14 +5,18 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 )
 
 func main() {
 	fmt.Println("Ibnul Cevzi Library Manager")
-	portPtr := flag.String("port", "8080", "HTTP port to listen")
 	dbPtr := flag.String("database", "postgres", "Daatabase to persist data")
-	fmt.Println("Port flag:" + *portPtr)
 	fmt.Println("Database flag:" + *dbPtr)
+	port := os.Getenv("PORT")
+
+	if port == "" {
+		log.Fatal("$PORT must be set")
+	}
 	var db AppDatabase
 	if *dbPtr == "postgres" {
 		db = new(postgres)
@@ -21,5 +25,5 @@ func main() {
 	}
 
 	router := NewRouter(db)
-	log.Fatal(http.ListenAndServe(":"+*portPtr, router))
+	log.Fatal(http.ListenAndServe(":"+port, router))
 }
