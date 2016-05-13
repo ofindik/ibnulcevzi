@@ -10,7 +10,7 @@ import (
 
 func main() {
 	fmt.Println("Ibnul Cevzi Library Manager")
-	dbPtr := flag.String("database", "postgres", "Daatabase to persist data")
+	dbPtr := flag.String("database", "postgres", "Database to persist data")
 	fmt.Println("Database flag:" + *dbPtr)
 	port := os.Getenv("PORT")
 
