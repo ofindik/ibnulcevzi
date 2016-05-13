@@ -38,6 +38,7 @@ func closePostgres(db *sql.DB) {
 }
 
 func (p *postgres) Readall(url, dbName, cName string) (books Books) {
+	fmt.Println("Readall from:" + url)
 	db, err := connectPostGres()
 	defer closePostgres(db)
 	rows, err := db.Query("SELECT * FROM book")
@@ -53,8 +54,6 @@ func (p *postgres) Readall(url, dbName, cName string) (books Books) {
 		checkErr(err)
 		fmt.Printf("%3v | %8v | %6v | %6v \n", id, name, author, status)
 		book := Book{Name: name, Author: author, Status: status}
-		result = append(result, book)
-		result = append(result, book)
 		result = append(result, book)
 	}
 	return result
